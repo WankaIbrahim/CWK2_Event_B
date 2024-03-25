@@ -1,3 +1,40 @@
 machine DentistAppointmentSystem
+sees DentistAppointmentSystemContext
+variables
+	register
+	in
+	out
+invariants
+	@inv1: register ⊆ USER
+	@inv2: register = in ∪ out
+	@inv3: in ∩ out = ∅
+events
+event INITIALISATION
+then
+	@act1: register, in, out ≔ ∅, ∅, ∅
+end
+	
+event NewUser
+any s where
+	@grd1: s ∈ (USER ∖ register)
+then
+	@act1: register ≔ register ∪ {s}
+	@act2: out ≔ out ∪ {s}
+end
 
+event Enter
+any s where
+	@grd1: s ∈ out
+then
+	@act1: in ≔ in ∪ {s}
+	@act2: out ≔ out ∖ {s}
+end
+
+event Leave
+any s where
+	@grd1: s ∈ in
+then
+	@act1: in ≔ in ∖ {s}
+	@act2: out ≔ out ∪ {s}
+end
 end
