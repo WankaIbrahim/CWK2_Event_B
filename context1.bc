@@ -1,4 +1,6 @@
 context DentistAppointmentSystemContext
 sets
 	USER
+	TREATMENT
+	DATEANDTIME
 end

@@ -1,25 +1,46 @@
 machine DentistAppointmentSystem
 sees DentistAppointmentSystemContext
 variables
-	register
-	in
-	out
+	patient 
+	admin
+	dentist
+	treatment
+	requiredTreatmentRecord
+	recievedTreatmentRecord
+	appointment
+	dateAndTime
+	appointmentSlot
 invariants
-	@inv1: register ⊆ USER
-	@inv2: register = in ∪ out
-	@inv3: in ∩ out = ∅
+	@inv1: patient ⊆ USER
+	@inv2: admin ⊆ USER
+	@inv3: dentist ⊆ USER
+	@inv4: patient ∩ dentist = ∅
+	@inv5: patient ∩ admin = ∅
+	@inv6: dentist ∩ admin = ∅
+	@inv7: patient ∩ admin ∩ dentist = ∅
+	@inv8: card(admin) = 1
+
+	@inv9: treatment ⊆ TREATMENT	
+	@inv10: requiredTreatmentRecord ∈ patient ↔ treatment
+	@inv11: recievedTreatmentRecord ∈ patient ↔ treatment
+	@inv12: requiredTreatmentRecord ∩ recievedTreatmentRecord = ∅
+
+	@inv13: dateAndTime ⊆ DATEANDTIME
+	@inv14: appointmentSlot ∈ dentist ↔ dateAndTime
+	@inv15: appointment ∈ appointmentSlot ⇸ requiredTreatmentRecord
+
 events
 event INITIALISATION
 then
-	@act1: register, in, out ≔ ∅, ∅, ∅
+	@act1:patient ≔ ∅
+	@act2:admin ≔ 1
+	@act3:dentist ≔ ∅
+	@act4:treatment ≔ ∅
+	@act5:requiredTreatmentRecord ≔ ∅
+	@act6:recievedTreatmentRecord ≔ ∅
+	@act7:appointment ≔ ∅
+	@act8:dateAndTime ≔ ∅
+	@act9:appointmentSlotend ≔ ∅
 end
 
-event newStudent
-any s
-where
-    @grd1: s ∈ (register \ user)
-then
-    @act1: register ≔ register ∪ {s}
-	@act2: out ≔ out ∪ {s}
-end	
 end
