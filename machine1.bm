@@ -2,7 +2,7 @@ machine DentistAppointmentSystem
 sees DentistAppointmentSystemContext
 variables
 	patient 
-	admin
+	admins
 	dentist
 	treatment
 	requiredTreatmentRecord
@@ -12,35 +12,34 @@ variables
 	appointmentSlot
 invariants
 	@inv1: patient ⊆ USER
-	@inv2: admin ⊆ USER
+	@inv2: admins ⊆ USER
 	@inv3: dentist ⊆ USER
 	@inv4: patient ∩ dentist = ∅
-	@inv5: patient ∩ admin = ∅
-	@inv6: dentist ∩ admin = ∅
-	@inv7: patient ∩ admin ∩ dentist = ∅
-	@inv8: card(admin) = 1
+	@inv5: patient ∩ admins = ∅
+	@inv6: dentist ∩ admins = ∅
+	@inv7: patient ∩ admins ∩ dentist = ∅
 
-	@inv9: treatment ⊆ TREATMENT	
-	@inv10: requiredTreatmentRecord ∈ patient ↔ treatment
-	@inv11: recievedTreatmentRecord ∈ patient ↔ treatment
-	@inv12: requiredTreatmentRecord ∩ recievedTreatmentRecord = ∅
+	@inv8 treatment ⊆ TREATMENT	
+	@inv9: requiredTreatmentRecord ∈ patient ↔ treatment
+	@inv10: recievedTreatmentRecord ∈ patient ↔ treatment
+	@inv11: requiredTreatmentRecord ∩ recievedTreatmentRecord = ∅
 
-	@inv13: dateAndTime ⊆ DATEANDTIME
-	@inv14: appointmentSlot ∈ dentist ↔ dateAndTime
-	@inv15: appointment ∈ appointmentSlot ⇸ requiredTreatmentRecord
+	@inv12: dateAndTime ⊆ DATEANDTIME
+	@inv13: appointmentSlot ∈ dentist ↔ dateAndTime
+	@inv14: appointment ∈ appointmentSlot ⇸ requiredTreatmentRecord
 
 events
 event INITIALISATION
 then
 	@act1:patient ≔ ∅
-	@act2:admin ≔ 1
+	@act2:admins ≔ ∅
 	@act3:dentist ≔ ∅
 	@act4:treatment ≔ ∅
 	@act5:requiredTreatmentRecord ≔ ∅
 	@act6:recievedTreatmentRecord ≔ ∅
 	@act7:appointment ≔ ∅
 	@act8:dateAndTime ≔ ∅
-	@act9:appointmentSlotend ≔ ∅
+	@act9:appointmentSlot ≔ ∅
 end
 
 end
