@@ -32,7 +32,7 @@ invariants
 	@inv13: appointmentSlot ∈ dentist ↔ dateAndTime
 	@inv14: appointment ∈ appointmentSlot ⇸ requiredTreatmentRecord
 
-	@inv15: passwords ⊆ STRING
+	@inv15: passwords ⊆ STRINGS
 	@inv16: userDetails ∈ USER ⇸ passwords
 	@inv17: loggedIn ⊆ USER
 	@inv18: loggedOut ⊆ USER
