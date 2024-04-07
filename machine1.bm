@@ -10,6 +10,9 @@ variables
 	appointment
 	dateAndTime
 	appointmentSlot
+	passwords
+	loggedIn
+	loggedOut
 invariants
 	@inv1: patient ⊆ USER
 	@inv2: admins ⊆ USER
@@ -28,6 +31,9 @@ invariants
 	@inv13: appointmentSlot ∈ dentist ↔ dateAndTime
 	@inv14: appointment ∈ appointmentSlot ⇸ requiredTreatmentRecord
 
+	@inv15: userDetails ∈ USER ⇸ passwords
+	@inv16: loggedIn ⊆ USER
+	@inv17: loggedOut ⊆ USER
 events
 event INITIALISATION
 then
@@ -40,6 +46,40 @@ then
 	@act7:appointment ≔ ∅
 	@act8:dateAndTime ≔ ∅
 	@act9:appointmentSlot ≔ ∅
+	@act10:userDetails = 1 //initial root user
+	@act11:loggedIn = ∅
+	@act12:loggedOut = USER
 end
 
+event CHANGEPASSWORD
+any u p //user, new password
+where
+	@grd1: u ∈ USER
+	@grd2: u ∈ loggedIn //user has to be logged in to change their password
+then
+	//@act1: userDetails := {u} ⩤ userDetails //removing that user's previous details
+	//@act2: userDetails := userDetails ∪ {u ↦ p} //re-adding that user's details with their new password
+	@act1: userDetails(u) := p //changing user's password
+end
+
+event USERLOGIN
+any u p //user, user's password
+where
+	@grd1: u ∈ USER
+	@grd2: {u ↦ p} ∈ userDetails //user's details have to be correct, i.e. they enter existing username and password
+	@grd3: u ∈ loggedOut //user has to be logged out to be logged in
+then
+	@act1: loggedIn := loggedIn ∪ {u} //logging user in
+	@act2: loggedOut := loggedOut ∖ {u} //user no-longer logged out so remove from loggedOut set
+end
+
+event userLogout
+any u  //user
+where
+	@grd1: u ∈ USER
+	@grd2: u ∈ loggedIn //user needs to be logged in to be logged out
+then
+	@act1: loggedOut := loggedOut ∪ {u} //user is now logged out
+	@act2: loggedIn := loggedIn ∖ {u} //user logged out so no longer part of set loggedIn
+end 
 end
