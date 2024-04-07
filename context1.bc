@@ -3,4 +3,5 @@ sets
 	USER
 	TREATMENT
 	DATEANDTIME
+	STRING
 end
