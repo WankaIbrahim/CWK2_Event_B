@@ -33,7 +33,7 @@ invariants
 	@inv14: appointment ∈ appointmentSlot ⇸ requiredTreatmentRecord
 
 	@inv15: passwords ⊆ STRINGS
-	@inv16: userDetails ∈ USER ⇸ passwords
+	@inv16: userDetails ∈ USER ↠ passwords
 	@inv17: loggedIn ⊆ USER
 	@inv18: loggedOut ⊆ USER
 events
