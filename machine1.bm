@@ -50,7 +50,8 @@ then
 	@act9:appointmentSlot ≔ ∅
 	@act10:userDetails ≔ ∅ 
 	@act11:loggedIn ≔ ∅
-	@act12:loggedOut ≔ USER
+	@act12:passwords ≔ ∅
+	@act13:loggedOut ≔ USER
 end
 
 event CHANGEPASSWORD
@@ -58,7 +59,7 @@ any u p //user, new password
 where
 	@grd1: u ∈ USER
 	@grd2: u ∈ loggedIn //user has to be logged in to change their password
-	@grd3: p ∈ STRING
+	@grd3: p ∈ STRINGS
 then
 	//@act1: userDetails ≔ {u} ⩤ userDetails //removing that user's previous details
 	//@act2: userDetails ≔ userDetails ∪ {u ↦ p} //re-adding that user's details with their new password
@@ -71,7 +72,7 @@ where
 	@grd1: u ∈ USER 
 	@grd2: p = userDetails(u) //user's details have to be correct, i.e. they enter existing username and password
 	@grd3: u ∈ loggedOut //user has to be logged out to be logged in
-	@grd4: p ∈ STRING
+	@grd4: p ∈ STRINGS
 then
 	@act1: loggedIn ≔ loggedIn ∪ {u} //logging user in
 	@act2: loggedOut ≔ loggedOut ∖ {u} //user no-longer logged out so remove from loggedOut set
