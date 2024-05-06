@@ -2,6 +2,5 @@ context DentistAppointmentSystemContext
 sets
 	USER
 	TREATMENT
-	DATEANDTIME
 	STRINGS
 end
