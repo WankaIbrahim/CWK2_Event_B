@@ -29,7 +29,7 @@ variables
 	dentistTreatment
 
 	nhsNumber
-	nhsNumberAssingmnent
+	nhsNumberAssignment
 	
 
 invariants
@@ -134,7 +134,7 @@ where
     @grd3: u ∉ patient // check already not a patient
     @grd4: p ∈ STRINGS // ensure the password is valid
 	@grd5: l ∈ admins // l is an admin
-    @grd5: l ∈ loggedIn // ensure that the adding administrator is logged in
+    @grd6: l ∈ loggedIn // ensure that the adding administrator is logged in
 then
     @act1: dentist ≔ dentist ∪ {u} // add the new dentist to the set of dentists
     @act2: userDetails(u) ≔ p // set the password for the new dentist
@@ -159,9 +159,9 @@ event ADDDENTISTTREATMENT
 any d t // Dentist treatment
 where
 	@grd1: d ∈ dentist
-	@grd2: t ∈ TREATMENT
+	@grd2: t ∈ treatment
 then
-	@act1: dentistTreatment ≔ dentistTreatment ∪ {d ↔ t}
+	@act1: dentistTreatment ≔ dentistTreatment ∪ {d ↦ t}
 end
 
 event CHANGEPASSWORD
