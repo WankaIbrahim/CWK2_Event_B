@@ -1,19 +1,36 @@
-machine DentistAppointmentSystem
-sees DentistAppointmentSystemContext
+machine m0
+sees c0
 variables
 	patient 
 	admins
 	dentist
-	treatment
-	requiredTreatmentRecord
-	recievedTreatmentRecord
-	appointment
-	dateAndTime
-	appointmentSlot
+
+	date
+	currentDate
+
 	userDetails
-	passwords
 	loggedIn
 	loggedOut
+
+	bookedAppointment
+	bookedAppointmentDate
+
+	completedAppointment
+	completedAppointmentDate
+
+	checkedInAppointment
+	checkedInAppointmentDentist
+	checkedInAppointmentDate
+	
+	missedAppointment
+	
+	dentistAssignment
+	dentistTreatment
+
+	nhsNumber
+	nhsNumberAssignment
+	
+
 invariants
 	@inv1: patient ⊆ USER
 	@inv2: admins ⊆ USER
@@ -23,35 +40,137 @@ invariants
 	@inv6: dentist ∩ admins = ∅
 	@inv7: patient ∩ admins ∩ dentist = ∅
 
-	@inv8 treatment ⊆ TREATMENT	
-	@inv9: requiredTreatmentRecord ∈ patient ↔ treatment
-	@inv10: recievedTreatmentRecord ∈ patient ↔ treatment
-	@inv11: requiredTreatmentRecord ∩ recievedTreatmentRecord = ∅
+	@inv8: date ⊆ ℕ
+	@inv9: currentDate ∈ ℕ
+	
+	@inv10: userDetails ∈ USER ⇸ STRINGS
+	@inv11: loggedIn ⊆ USER
+	@inv12: loggedOut ⊆ USER
+	@inv13: loggedOut ∩ loggedIn = ∅
+	@inv14: loggedOut ∪ loggedIn = patient ∪ dentist ∪ admins
 
-	@inv12: dateAndTime ⊆ DATEANDTIME
-	@inv13: appointmentSlot ∈ dentist ↔ dateAndTime
-	@inv14: appointment ∈ appointmentSlot ⇸ requiredTreatmentRecord
+	@inv15: bookedAppointment ∈ patient ↔ TREATMENT
+	@inv16: bookedAppointmentDate ∈ bookedAppointment → date
 
-	@inv15: passwords ⊆ STRINGS
-	@inv16: userDetails ∈ USER ↠ passwords
-	@inv17: loggedIn ⊆ USER
-	@inv18: loggedOut ⊆ USER
+	@inv17: completedAppointment ∈ patient ↔ TREATMENT
+	@inv18: completedAppointmentDate ∈ completedAppointment ↔ date
+
+	@inv19: checkedInAppointment ∈ patient ↔ TREATMENT
+	@inv20: checkedInAppointmentDentist ∈ checkedInAppointment → dentist
+	@inv21: checkedInAppointmentDate ∈ checkedInAppointment → date
+
+	@inv22: missedAppointment ∈ patient ↔ TREATMENT
+
+	@inv23: dentistAssignment ∈ bookedAppointment → dentist
+	@inv24: dentistTreatment ∈ dentist ↔ TREATMENT
+	
+	@inv25: nhsNumber ⊆ ℕ
+	@inv26: nhsNumberAssignment ∈ patient ↣ nhsNumber
 events
 event INITIALISATION
 then
 	@act1:patient ≔ ∅
 	@act2:admins ≔ ∅
 	@act3:dentist ≔ ∅
-	@act4:treatment ≔ ∅
-	@act5:requiredTreatmentRecord ≔ ∅
-	@act6:recievedTreatmentRecord ≔ ∅
-	@act7:appointment ≔ ∅
-	@act8:dateAndTime ≔ ∅
-	@act9:appointmentSlot ≔ ∅
-	@act10:userDetails ≔ ∅ 
-	@act11:loggedIn ≔ ∅
-	@act12:passwords ≔ ∅
-	@act13:loggedOut ≔ USER
+
+	@act4:date ≔ ℕ
+	@act5: currentDate ≔ 1
+
+	@act6:userDetails ≔ ∅ 
+	@act7:loggedIn ≔ ∅
+	@act8:loggedOut ≔ ∅
+
+	@act9: bookedAppointment ≔ ∅
+	@act10: bookedAppointmentDate ≔ ∅
+
+	@act11: completedAppointment ≔ ∅
+	@act12: completedAppointmentDate ≔ ∅
+
+	@act13: checkedInAppointment ≔ ∅
+	@act14: checkedInAppointmentDentist ≔ ∅
+	@act15: checkedInAppointmentDate ≔ ∅
+
+	@act16: missedAppointment ≔ ∅
+
+	@act17: dentistAssignment ≔ ∅
+	@act18: dentistTreatment ≔ ∅
+
+	@act19: nhsNumber ≔ ℕ
+	@act20: nhsNumberAssignment ≔ ∅
+end
+
+event REGISTERFIRSTADMIN // Runs after init
+any u p // user password
+where
+	@grd1: u ∈ USER // u is a user
+	@grd2: admins = ∅ // Admins is empty
+	@grd3: u ∉ dentist // check not already a dentist 
+    @grd4: u ∉ patient //check not already a patient
+	@grd5: p ∈ STRINGS // p is a password
+	@grd6: u ∉ loggedIn // u is not logged
+then
+	@act1: admins ≔ admins ∪ {u} // Add the default admin
+	@act2: loggedOut ≔ loggedOut ∪ {u} 
+	@act3: userDetails(u) ≔ p // set the password for the new administrator
+end
+
+event REGISTER_ADMINISTRATOR
+any l u p // logged in admin, new administrator username, password
+where
+	@grd1: u ∈ USER // u is a user
+    @grd2: u ∉ admins // check unique username
+    @grd3: u ∉ dentist // check not already a dentist 
+    @grd4: u ∉ patient //check not already a patient
+    @grd5: p ∈ STRINGS // check the password is valid
+	@grd6: l ∈ admins // l is an admin
+    @grd7: l ∈ loggedIn // ensure that the adding administrator is logged in
+then
+    @act1: admins ≔ admins ∪ {u} // add the new administrator to the set of administrators
+    @act2: loggedOut ≔ loggedOut ∪ {u} 
+    @act3: userDetails(u) ≔ p // set the password for the new administrator
+end
+
+event REGISTER_DENTIST
+any  l u p // logged in admin, new dentist username, password
+where
+	@grd1: u ∈ USER // u is a user
+    @grd2: u ∉ admins // check already not administrator
+    @grd3: u ∉ dentist // check unique username
+    @grd4: u ∉ patient // check already not a patient
+    @grd5: p ∈ STRINGS // ensure the password is valid
+	@grd6: l ∈ admins // l is an admin
+    @grd7: l ∈ loggedIn // ensure that the adding administrator is logged in
+then
+    @act1: dentist ≔ dentist ∪ {u} // add the new dentist to the set of dentists
+    @act2: loggedOut ≔ loggedOut ∪ {u}
+    @act3: userDetails(u) ≔ p // set the password for the new dentist
+end
+
+event REGISTER_PATIENT
+any u p n // new patient username, password, NHS number
+where
+	@grd1: u ∈ USER // u is a user
+    @grd2: u ∉ admins // check already not administrator
+    @grd3: u ∉ dentist // check already not a dentist
+    @grd4: u ∉ patient // check the unique username as a patient
+    @grd5: p ∈ STRINGS // ensure the password is valid
+    @grd6: n ∈ nhsNumber // ensure the NHS number is unique
+	@grd7: n ∉ ran(nhsNumberAssignment) // Nhs nuber is unique
+then
+    @act1: patient ≔ patient ∪ {u} // add the new patient to the set of patients
+    @act2: loggedOut ≔ loggedOut ∪ {u}
+    @act3: userDetails(u) ≔ p // set the password for the new patient
+    @act4: nhsNumberAssignment(u) ≔ n // Assign nhs number
+end
+
+event ADDDENTISTTREATMENT
+any d t // Dentist treatment
+where
+	@grd1: d ∈ dentist
+	@grd2: t ∈ TREATMENT
+	@grd3: d ↦ t ∉ dentistTreatment
+then
+	@act1: dentistTreatment ≔ dentistTreatment ∪ {d ↦ t}
 end
 
 event CHANGEPASSWORD
@@ -60,9 +179,8 @@ where
 	@grd1: u ∈ USER
 	@grd2: u ∈ loggedIn //user has to be logged in to change their password
 	@grd3: p ∈ STRINGS
+	@grd4: p ≠ userDetails(u)
 then
-	//@act1: userDetails ≔ {u} ⩤ userDetails //removing that user's previous details
-	//@act2: userDetails ≔ userDetails ∪ {u ↦ p} //re-adding that user's details with their new password
 	@act1: userDetails(u) ≔ p //changing user's password
 end
 
@@ -78,13 +196,139 @@ then
 	@act2: loggedOut ≔ loggedOut ∖ {u} //user no-longer logged out so remove from loggedOut set
 end
 
-event userLogout
+event USERLOGOUT
 any u  //user
 where
-	@grd1: u ∈ USER
+	@grd1: u ∈ USER 
 	@grd2: u ∈ loggedIn //user needs to be logged in to be logged out
 then
 	@act1: loggedOut ≔ loggedOut ∪ {u} //user is now logged out
 	@act2: loggedIn ≔ loggedIn ∖ {u} //user logged out so no longer part of set loggedIn
 end 
+
+
+event CHECKIN
+any p a //Patient, appointment
+where
+	@grd1: p ∈ patient // Patient is a patient
+	@grd2: a ∈ bookedAppointment // Appointment is booked
+	@grd3: ∃x·x ∈ TREATMENT ∧ p ↦ x = a // appointment belongs to patient
+	@grd4: a ↦ currentDate ∈ bookedAppointmentDate// The date of the appointment is equal to the current date
+then
+	@act1: checkedInAppointment ≔ checkedInAppointment ∪ {a} // Add the appointment to checked in
+	@act2: checkedInAppointmentDentist ≔ checkedInAppointmentDentist ∪ {a ↦ dentistAssignment(a)} //Assign dentist to checked in appointment
+	@act3: checkedInAppointmentDate ≔ checkedInAppointmentDate ∪ {a ↦ bookedAppointmentDate(a)} // Assign date to checked in appointment
+	@act4: bookedAppointment ≔ bookedAppointment ∖ {a} // Remove the appointment from booked
+	@act5: dentistAssignment ≔ dentistAssignment ∖ {a ↦ dentistAssignment(a)} // Remove Dentist assignment
+	@act6: bookedAppointmentDate ≔ bookedAppointmentDate ∖ {a ↦ bookedAppointmentDate(a)} // Remove date assignment
+end
+
+event COMPLETEAPPOINTMENT
+any d p a//dentist, patient, appointment
+where
+	@grd1: p ∈ patient // Patient is a patient
+	@grd2: d ∈ dentist // Dentist is a dentist
+	@grd3: d ∈ loggedIn // The dentist is logged in
+	@grd4: a ∈ checkedInAppointment // Appointment has been checked in for
+	@grd5: a ↦ d ∈ checkedInAppointmentDentist // Appointment has been checked in for and dentist is correct
+then
+	@act1: completedAppointment ≔  completedAppointment ∪ {a} // Add appointment to completed
+	@act2: completedAppointmentDate ≔ completedAppointmentDate ∪ {a ↦ checkedInAppointmentDate(a)} // Save date of appointment
+	@act3: checkedInAppointmentDate ≔ checkedInAppointmentDate ∖ {a ↦ checkedInAppointmentDate(a)} // Remove date assignment
+	@act4: checkedInAppointmentDentist ≔ checkedInAppointmentDentist ∖ {a ↦ checkedInAppointmentDentist(a)} //Remove dentist from checked in appointment
+	@act5: checkedInAppointment ≔ checkedInAppointment ∖ {a} // Remove appointment from checked in
+end 
+
+event UPDATEMISSEDAPPOINTMENT
+any ad a//administrator, appointment
+where
+	@grd1: ad ∈ admins // User is administrator
+	@grd2: ad ∈ loggedIn // User is logged in
+	@grd3: a ∈ bookedAppointment // Check that the appointment exists
+then
+	@act1: dentistAssignment ≔ dentistAssignment ∖ {a ↦ dentistAssignment(a)} // Remove Dentist assignment
+	@act2: bookedAppointmentDate ≔ bookedAppointmentDate ∖ {a ↦ bookedAppointmentDate(a)} // Remove date assignment
+	@act3: missedAppointment ≔ missedAppointment ∪ {a} // Add new missedAppointment
+	@act4: bookedAppointment ≔ bookedAppointment ∖ {a} // Remove bookedAppointment
+end
+
+event AUTOADDMISSEDAPPOINTMENT
+any a // appointment
+where
+	@grd1: a ∈ bookedAppointment
+	@grd2: ∃x·a ↦ x ∈ bookedAppointmentDate ∧ x < currentDate // Appointment date has been passed
+then
+	@act1: dentistAssignment ≔ dentistAssignment ∖ {a ↦ dentistAssignment(a)} // Remove Dentist assignment
+	@act2: bookedAppointmentDate ≔ bookedAppointmentDate ∖ {a ↦ bookedAppointmentDate(a)} // Remove date assignment
+	@act3: missedAppointment ≔ missedAppointment ∪ {a} // Add new missedAppointment
+	@act4: bookedAppointment ≔ bookedAppointment ∖ {a} // Remove bookedAppointment
+end
+
+event BOOKAPPOINTMENT
+any u d dt r //User, Dentist, date, required treatment
+where
+	@grd1: u ∈ patient // User is a user
+	@grd2: u ∈ loggedIn // User is logged in
+	@grd3: d ∈ dentist // Dentist is a dentist
+	@grd4: dt ∈ date // Date is valid
+	@grd5: r ∈ TREATMENT // treatment is valid
+	@grd6: d ↦ r ∈ dentistTreatment //Chosen dentist can perform required treatment (And by extention is a dentist)
+	@grd7: dt > currentDate // User is not attempting to book an appointment for the same day
+	@grd8: ∀x·u ↦ r ↦ x ∈ completedAppointmentDate ⇒ dt − x > 14 // Not same treatment within last 2 weeks
+	@grd9: u ↦ r ∉ bookedAppointment //User does not already have an appointment booked for the same treatment
+then
+	@act1: bookedAppointment ≔ bookedAppointment ∪ {u ↦ r} // Add the appointment to booked appointments
+	@act2: dentistAssignment ≔ dentistAssignment ∪ {u ↦ r ↦ d} // Assign the correct dentist
+	@act3: bookedAppointmentDate ≔ bookedAppointmentDate ∪ {u ↦ r ↦ dt} // Assign the correct date
+end
+
+event CANCELAPPOINTMENT
+any u a // User, appointment
+where 
+	@grd1: u ∈ patient // User is a user
+	@grd2: u ∈ loggedIn // User is logged in
+	@grd3: a ∈ bookedAppointment // Appointment is booked
+	@grd4: ∃x·u ↦ x = a // appointment belongs to patient
+	@grd5: ∃x·a ↦ x ∈ bookedAppointmentDate ∧ x − currentDate > 2 // Appointment is in more than 2 days time
+then
+	@act1: dentistAssignment ≔ dentistAssignment ∖ {a ↦ dentistAssignment(a)} // Remove Dentist assignment
+	@act2: bookedAppointmentDate ≔ bookedAppointmentDate ∖ {a ↦ bookedAppointmentDate(a)} // Remove date assignment
+	@act3: bookedAppointment ≔ bookedAppointment ∖ {a} // Remove appointment
+end
+
+event CHANGEDATE
+any u a nd // User, appointment, new date
+where
+	@grd1: u ∈ patient // User is a user
+	@grd2: u ∈ loggedIn // User is logged in
+	@grd3: nd ∈ date // New date is valid
+	@grd4: a ∈ bookedAppointment // Appointment is booked
+	@grd5: ∃x·u ↦ x = a // appointment belongs to patient
+	@grd6: ∃x·a ↦ x ∈ bookedAppointmentDate ∧ x − currentDate > 2 // Appointment is in more than 2 days time
+	@grd7: nd > currentDate // User is not attempting to book an appointment for the same day
+	@grd8: ∀x·a ↦ x ∈ completedAppointmentDate ⇒ nd − x > 14 // Not same treatment within last 2 weeks
+	@grd9: a ↦ nd ∉ bookedAppointmentDate // new date is not the same as current date
+then
+	@act1: bookedAppointmentDate(a) ≔ nd // Update date
+end
+
+event CHANGEDENTIST
+any u a nd // User, appointment, new dentist
+where
+	@grd1: u ∈ patient // User is a user
+	@grd2: u ∈ loggedIn // User is logged in
+	@grd3: nd ∈ dentist // Dentist is a dentist
+	@grd4: a ∈ bookedAppointment // Appointment is booked
+	@grd5: ∃x·u ↦ x = a // appointment belongs to patient
+	@grd6: ∃x·a ↦ x ∈ bookedAppointmentDate ∧ x − currentDate > 2 // Appointment is in more than 2 days time
+	@grd7: ∃x·u ↦ x = a ∧ nd ↦ x ∈ dentistTreatment //Chosen dentist can perform required treatment (And by extension is a dentist)
+	@grd8: a ↦ nd ∉ dentistAssignment // new dentist is not the same as current dentist
+then
+	@act1: dentistAssignment(a) ≔ nd // Update dentist
+end
+
+event INCREMENTDATE
+then
+	@act1: currentDate ≔ currentDate + 1
+end
 end
