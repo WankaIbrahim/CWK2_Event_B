@@ -70,7 +70,7 @@ events
 event INITIALISATION
 then
 	@act1:patient ≔ ∅
-	@act2:admins ≔ {"root"}
+	@act2:admins ≔ ∅
 	@act3:dentist ≔ ∅
 
 	@act4:treatment ≔ TREATMENT
@@ -99,6 +99,17 @@ then
 	@act20: nhsNumber ≔ ℕ
 	@act21: nhsNumberAssignment ≔ ∅
 
+end
+
+event REGISTERFIRSTADMIN // Runs after init
+any u p // user password
+where
+	@grd1: u ∈ USER // u is a user
+	@grd2: admins = ∅ // Admins is empty
+	@grd3: p ∈ STRINGS // p is a password
+then
+	@act1: admins ≔ admins ∪ {u} // Add the default admin
+	@act2: userDetails(u) ≔ p // set the password for the new administrator
 end
 
 event REGISTER_ADMINISTRATOR
