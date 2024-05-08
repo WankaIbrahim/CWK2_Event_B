@@ -29,8 +29,10 @@ variables
 
 	nhsNumber
 	nhsNumberAssignment
-	
-
+		
+	patientAppointmentRecord
+	bookedAppointmentsOnDay
+	treatmentRecord
 invariants
 	@inv1: patient ⊆ USER
 	@inv2: admins ⊆ USER
@@ -66,6 +68,10 @@ invariants
 	
 	@inv25: nhsNumber ⊆ ℕ
 	@inv26: nhsNumberAssignment ∈ patient ↣ nhsNumber
+	
+	@inv27: patientAppointmentRecord ⊆ completedAppointment
+	@inv28: bookedAppointmentsOnDay ⊆ bookedAppointment
+	@inv29: treatmentRecord ⊆ completedAppointmentDate
 events
 event INITIALISATION
 then
@@ -97,6 +103,10 @@ then
 
 	@act19: nhsNumber ≔ ℕ
 	@act20: nhsNumberAssignment ≔ ∅
+	
+	@act21: patientAppointmentRecord ≔ ∅
+	@act22: bookedAppointmentsOnDay ≔ ∅
+	@act23: treatmentRecord ≔ ∅
 end
 
 event REGISTERFIRSTADMIN // Runs after init
@@ -155,7 +165,7 @@ where
     @grd4: u ∉ patient // check the unique username as a patient
     @grd5: p ∈ STRINGS // ensure the password is valid
     @grd6: n ∈ nhsNumber // ensure the NHS number is unique
-	@grd7: n ∉ ran(nhsNumberAssignment) // Nhs nuber is unique
+	@grd7: n ∉ ran(nhsNumberAssignment) // Nhs number is unique
 then
     @act1: patient ≔ patient ∪ {u} // add the new patient to the set of patients
     @act2: loggedOut ≔ loggedOut ∪ {u}
@@ -215,12 +225,13 @@ where
 	@grd3: ∃x·x ∈ TREATMENT ∧ p ↦ x = a // appointment belongs to patient
 	@grd4: a ↦ currentDate ∈ bookedAppointmentDate// The date of the appointment is equal to the current date
 then
-	@act1: checkedInAppointment ≔ checkedInAppointment ∪ {a} // Add the appointment to checked in
-	@act2: checkedInAppointmentDentist ≔ checkedInAppointmentDentist ∪ {a ↦ dentistAssignment(a)} //Assign dentist to checked in appointment
-	@act3: checkedInAppointmentDate ≔ checkedInAppointmentDate ∪ {a ↦ bookedAppointmentDate(a)} // Assign date to checked in appointment
-	@act4: bookedAppointment ≔ bookedAppointment ∖ {a} // Remove the appointment from booked
-	@act5: dentistAssignment ≔ dentistAssignment ∖ {a ↦ dentistAssignment(a)} // Remove Dentist assignment
-	@act6: bookedAppointmentDate ≔ bookedAppointmentDate ∖ {a ↦ bookedAppointmentDate(a)} // Remove date assignment
+	@act1: bookedAppointmentsOnDay ≔ ∅ //Reset booked appointments list
+	@act2: checkedInAppointment ≔ checkedInAppointment ∪ {a} // Add the appointment to checked in
+	@act3: checkedInAppointmentDentist ≔ checkedInAppointmentDentist ∪ {a ↦ dentistAssignment(a)} //Assign dentist to checked in appointment
+	@act4: checkedInAppointmentDate ≔ checkedInAppointmentDate ∪ {a ↦ bookedAppointmentDate(a)} // Assign date to checked in appointment
+	@act5: bookedAppointment ≔ bookedAppointment ∖ {a} // Remove the appointment from booked
+	@act6: dentistAssignment ≔ dentistAssignment ∖ {a ↦ dentistAssignment(a)} // Remove Dentist assignment
+	@act7: bookedAppointmentDate ≔ bookedAppointmentDate ∖ {a ↦ bookedAppointmentDate(a)} // Remove date assignment
 end
 
 event COMPLETEAPPOINTMENT
@@ -246,10 +257,11 @@ where
 	@grd2: ad ∈ loggedIn // User is logged in
 	@grd3: a ∈ bookedAppointment // Check that the appointment exists
 then
-	@act1: dentistAssignment ≔ dentistAssignment ∖ {a ↦ dentistAssignment(a)} // Remove Dentist assignment
-	@act2: bookedAppointmentDate ≔ bookedAppointmentDate ∖ {a ↦ bookedAppointmentDate(a)} // Remove date assignment
-	@act3: missedAppointment ≔ missedAppointment ∪ {a} // Add new missedAppointment
-	@act4: bookedAppointment ≔ bookedAppointment ∖ {a} // Remove bookedAppointment
+	@act1: bookedAppointmentsOnDay ≔ ∅ //Reset booked appointments list
+	@act2: dentistAssignment ≔ dentistAssignment ∖ {a ↦ dentistAssignment(a)} // Remove Dentist assignment
+	@act3: bookedAppointmentDate ≔ bookedAppointmentDate ∖ {a ↦ bookedAppointmentDate(a)} // Remove date assignment
+	@act4: missedAppointment ≔ missedAppointment ∪ {a} // Add new missedAppointment
+	@act5: bookedAppointment ≔ bookedAppointment ∖ {a} // Remove bookedAppointment
 end
 
 event AUTOADDMISSEDAPPOINTMENT
@@ -258,10 +270,11 @@ where
 	@grd1: a ∈ bookedAppointment
 	@grd2: ∃x·a ↦ x ∈ bookedAppointmentDate ∧ x < currentDate // Appointment date has been passed
 then
-	@act1: dentistAssignment ≔ dentistAssignment ∖ {a ↦ dentistAssignment(a)} // Remove Dentist assignment
-	@act2: bookedAppointmentDate ≔ bookedAppointmentDate ∖ {a ↦ bookedAppointmentDate(a)} // Remove date assignment
-	@act3: missedAppointment ≔ missedAppointment ∪ {a} // Add new missedAppointment
-	@act4: bookedAppointment ≔ bookedAppointment ∖ {a} // Remove bookedAppointment
+	@act1: bookedAppointmentsOnDay ≔ ∅ //Reset booked appointments list
+	@act2: dentistAssignment ≔ dentistAssignment ∖ {a ↦ dentistAssignment(a)} // Remove Dentist assignment
+	@act3: bookedAppointmentDate ≔ bookedAppointmentDate ∖ {a ↦ bookedAppointmentDate(a)} // Remove date assignment
+	@act4: missedAppointment ≔ missedAppointment ∪ {a} // Add new missedAppointment
+	@act5: bookedAppointment ≔ bookedAppointment ∖ {a} // Remove bookedAppointment
 end
 
 event BOOKAPPOINTMENT
@@ -291,9 +304,10 @@ where
 	@grd4: ∃x·u ↦ x = a // appointment belongs to patient
 	@grd5: ∃x·a ↦ x ∈ bookedAppointmentDate ∧ x − currentDate > 2 // Appointment is in more than 2 days time
 then
-	@act1: dentistAssignment ≔ dentistAssignment ∖ {a ↦ dentistAssignment(a)} // Remove Dentist assignment
-	@act2: bookedAppointmentDate ≔ bookedAppointmentDate ∖ {a ↦ bookedAppointmentDate(a)} // Remove date assignment
-	@act3: bookedAppointment ≔ bookedAppointment ∖ {a} // Remove appointment
+	@act1: bookedAppointmentsOnDay ≔ ∅ //Reset booked appointments list
+	@act2: dentistAssignment ≔ dentistAssignment ∖ {a ↦ dentistAssignment(a)} // Remove Dentist assignment
+	@act3: bookedAppointmentDate ≔ bookedAppointmentDate ∖ {a ↦ bookedAppointmentDate(a)} // Remove date assignment
+	@act4: bookedAppointment ≔ bookedAppointment ∖ {a} // Remove appointment
 end
 
 event CHANGEDATE
@@ -331,4 +345,33 @@ event INCREMENTDATE
 then
 	@act1: currentDate ≔ currentDate + 1
 end
+
+event VIEWAPPOINTMENTRECORD
+any u nhs // administrator/dentist, NHS number
+where
+	@grd1: u ∈ admins ∪ dentist // Check that user is administrator or dentist
+	@grd2: u ∈ loggedIn // Check that 
+	@grd3: nhs ∈ nhsNumber // Checking if the NHS number is valid.
+	@grd4: nhs ∈ ran(nhsNumberAssignment) // Ensure that there is a patient with the specified NHS number.
+then
+	@act1: patientAppointmentRecord ≔ dom(nhsNumberAssignment ▷ {nhs}) ◁ completedAppointment //View the appointment record for the patient using the NHS number
+end
+
+event BOOKEDAPPOINTMENTDATE 
+any u day // user, date 
+where
+	@grd1: u ∈ patient // checking if the user is a patient
+	@grd2: day ∈ date // Ensuring the provided date is valid.
+then 
+	@act1: bookedAppointmentsOnDay ≔ dom(bookedAppointmentDate ▷ {day})// Retrieve appointment for the specific date.
+end 
+
+event COMPLETEDTREATMENT
+any u //user
+where
+	@grd1: u ∈ patient //Ensure the user is a patient
+	@grd2: u ∈ loggedIn // user is logged in
+then 
+	@act1: treatmentRecord ≔ ({u} ◁ completedAppointment) ◁ completedAppointmentDate// Generate treatment record
+end 
 end
